@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using FlightManager.Domain.Data;
 using FlightManager.Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,9 +46,20 @@ namespace FlightManager.Domain.Controllers
         }
 
         [HttpDelete]
-        public string Delete()
+        [Route("{id}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<Airplane>> Delete(
+            [FromServices] DataContext context,
+            string id)
         {
-            return "ok";
+            var airplane = await context.Aiplanes.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id));
+
+            if (airplane == null)
+                return NotFound(new { message = "Aviao não encontrado" });
+
+            context.Aiplanes.Remove(airplane);
+            await context.SaveChangesAsync();
+            return Ok();
         }
 
         [HttpPut]
